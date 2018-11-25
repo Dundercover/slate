@@ -1856,8 +1856,14 @@ class ElementInterface {
 
     if (!path.size) return node
     this.assertNode(path)
-    const deep = path.flatMap(x => ['nodes', x])
-    const ret = this.setIn(deep, node)
+
+    // Update ancestors one by one
+    const ret = this.getAncestors(path).reduceRight(
+      (updatedChild, parent, i) =>
+        parent.set('nodes', parent.nodes.set(path.get(i), updatedChild)),
+      node
+    )
+
     return ret
   }
 
