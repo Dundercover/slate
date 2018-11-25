@@ -1806,8 +1806,18 @@ class ElementInterface {
   removeNode(path) {
     this.assertDescendant(path)
     path = this.resolvePath(path)
-    const deep = path.flatMap(x => ['nodes', x])
-    const ret = this.deleteIn(deep)
+    if (!path) return this
+
+    // Get all ancestors, including this node
+    const nodes = this.getAncestors(path)
+
+    // Remove node in parent and then update ancestors one by one
+    const ret = nodes
+      .update(nodes.size - 1, n => n.set('nodes', n.nodes.delete(path.last())))
+      .reduceRight((updatedChild, parent, i) =>
+        parent.set('nodes', parent.nodes.set(path.get(i), updatedChild))
+      )
+
     return ret
   }
 
